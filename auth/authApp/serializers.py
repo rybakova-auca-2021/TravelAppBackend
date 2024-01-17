@@ -13,14 +13,25 @@ from .models import UserProfile
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['profile_photo', 'first_name', 'last_name']
+        fields = ['location', 'phone_number']
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer(source='userprofile', required=False)
+    profile = UserProfileSerializer(source='userprofile', read_only=True)
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
+
+class EditProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+class EditUserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['location', 'phone_number']
+
 
 class NewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(

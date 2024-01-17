@@ -12,7 +12,7 @@ from django.conf import settings
 from .models import UserProfile
 from django.contrib.auth import authenticate
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
+from .serializers import EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
 
 
 VERIFICATION_CODE = "2207"
@@ -161,29 +161,47 @@ class UserProfileView(APIView):
 
         serialized_data = {
             **serializer.data,
-            'profile': {
-                'profile_photo': user_profile.profile_photo.url if user_profile.profile_photo else None,
-            }
         }
 
         return Response(serialized_data)
 
 class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
 
     def put(self, request, *args, **kwargs):
+        user = request.user
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+        user_serializer = EditProfileSerializer(user, data=request.data, partial=True)
+        user_profile_serializer = EditUserProfileSerializer(user_profile, data=request.data, partial=True)
+
+        if user_serializer.is_valid() and user_profile_serializer.is_valid():
+            user_serializer.save()
+            user_profile_serializer.save()
+            return Response({**user_serializer.data, **user_profile_serializer.data})
+        
+        errors = {}
+        if not user_serializer.is_valid():
+            errors.update(user_serializer.errors)
+
+        if not user_profile_serializer.is_valid():
+            errors.update(user_profile_serializer.errors)
+
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class EditProfilePhoto(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def patch(self, request, *args, **kwargs):
         user = request.user
         user_profile, created = UserProfile.objects.get_or_create(user=user)
         serializer = UserSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
-            user.first_name = serializer.validated_data.get('first_name', user.first_name)
-            user.last_name = serializer.validated_data.get('last_name', user.last_name)
-            user.username = serializer.validated_data.get('username', user.username)
-            user.email = serializer.validated_data.get('email', user.email)
-            user.save()
-
             profile_photo = request.data.get('profile_photo')
             if profile_photo:
                 user_profile.profile_photo = profile_photo

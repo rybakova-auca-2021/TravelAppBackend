@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/create-new-password/', views.CreareNewPasswordView.as_view(), name='verify-code'),
     path('profile/', views.UserProfileView.as_view(), name='user-profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
+    path('profile_photo/edit/', views.EditProfilePhoto.as_view(), name='edit-profile-photo'),
 ]
 
 router = DefaultRouter()
