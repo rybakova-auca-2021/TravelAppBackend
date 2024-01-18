@@ -170,15 +170,14 @@ class EditProfileView(APIView):
         serializer = UserSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
-            # Save the profile data to both User and UserProfile
             user.first_name = serializer.validated_data.get('first_name', user.first_name)
             user.last_name = serializer.validated_data.get('last_name', user.last_name)
+            user.username = serializer.validated_data.get('username', user.username)
+            user.email = serializer.validated_data.get('email', user.email)
             user.save()
 
-            # Check if a profile photo is provided in the request
             profile_photo = request.data.get('profile_photo')
             if profile_photo:
-                # Save the profile photo to the UserProfile model
                 user_profile.profile_photo = profile_photo
                 user_profile.save()
 
