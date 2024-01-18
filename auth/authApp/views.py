@@ -4,12 +4,14 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from sendsms.message import SmsMessage
 from rest_framework import serializers
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.conf import settings
+from .models import UserProfile
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import UserSerializer, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
 
 
 VERIFICATION_CODE = "2207"
@@ -26,38 +28,9 @@ def generate_tokens(user):
     return str(access), str(refresh)
 
 
-class NewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(
-        write_only=True,
-        min_length=8,
-        error_messages={
-            "min_length": f"Password must be longer than {8} characters."
-        }
-    )
-    new_password = serializers.CharField(
-        write_only=True,
-        min_length=8,
-        error_messages={
-            "min_length": f"Password must be longer than {8} characters."
-        }
-    )
-    email = serializers.CharField()
-
-class PasswordResetSerializer(serializers.Serializer):
-    email = serializers.CharField()
-
-class CodeVerificationSerializer(serializers.Serializer):
-    verification_code = serializers.CharField()
-    email = serializers.CharField()
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
 class UserSignupView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializerLogin
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
@@ -76,10 +49,9 @@ class UserSignupView(generics.CreateAPIView):
             "refresh_token": str(refresh),
         }, status=status.HTTP_201_CREATED)
 
-
-
 class UserLoginView(APIView):
     permission_classes = [permissions.AllowAny]
+    
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -99,7 +71,6 @@ class UserLoginView(APIView):
             })
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 class PasswordResetView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -130,7 +101,6 @@ class PasswordResetView(APIView):
                 return Response({"error": "Failed to send verification code"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"error": "User not found for the provided email"}, status=status.HTTP_404_NOT_FOUND)
-
 
 class CodeVerificationView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -164,7 +134,7 @@ class CreareNewPasswordView(APIView):
         password = serializer.validated_data['password']
         new_password = serializer.validated_data['new_password']
 
-        user = User.objects.filter(email = email).first()
+        user = User.objects.filter(email=email).first()
 
         if user:
             user.set_password(new_password)
@@ -178,22 +148,44 @@ class UserProfileView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+        serializer = UserSerializer(user, context={'request': request})  
+
+        serialized_data = {
+            **serializer.data,
+            'profile': {
+                'profile_photo': user_profile.profile_photo.url if user_profile.profile_photo else None,
+            }
+        }
+
+        return Response(serialized_data)
 
 class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def put(self, request, *args, **kwargs):
         user = request.user
-        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+
         if serializer.is_valid():
-            serializer.save()
+            # Save the profile data to both User and UserProfile
+            user.first_name = serializer.validated_data.get('first_name', user.first_name)
+            user.last_name = serializer.validated_data.get('last_name', user.last_name)
+            user.save()
+
+            # Check if a profile photo is provided in the request
+            profile_photo = request.data.get('profile_photo')
+            if profile_photo:
+                # Save the profile photo to the UserProfile model
+                user_profile.profile_photo = profile_photo
+                user_profile.save()
+
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):
-
     permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer

@@ -4,8 +4,49 @@ from rest_framework.validators import UniqueValidator
 
 MIN_LENGTH = 8
 
+# serializers.py
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import UserProfile
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['profile_photo', 'first_name', 'last_name']
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(source='userprofile', required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
+
+class NewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        error_messages={
+            "min_length": f"Password must be longer than {8} characters."
+        }
+    )
+    new_password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        error_messages={
+            "min_length": f"Password must be longer than {8} characters."
+        }
+    )
+    email = serializers.CharField()
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.CharField()
+
+class CodeVerificationSerializer(serializers.Serializer):
+    verification_code = serializers.CharField()
+    email = serializers.CharField()
+
+
+class UserSerializerLogin(serializers.Serializer):
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
@@ -48,3 +89,4 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+
