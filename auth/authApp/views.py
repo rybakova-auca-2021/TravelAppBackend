@@ -50,6 +50,11 @@ class CodeVerificationSerializer(serializers.Serializer):
     verification_code = serializers.CharField()
     email = serializers.CharField()
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
 class UserSignupView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -168,7 +173,24 @@ class CreareNewPasswordView(APIView):
         else:
             return Response({"error": "User not found for the provided mobile number"}, status=status.HTTP_404_NOT_FOUND)            
 
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
 
 class UserViewSet(viewsets.ModelViewSet):
 

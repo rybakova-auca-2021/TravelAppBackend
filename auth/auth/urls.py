@@ -21,6 +21,8 @@ urlpatterns = [
     path('api/password-reset/', views.PasswordResetView.as_view(), name='password-reset'),
     path('api/verify-code/', views.CodeVerificationView.as_view(), name='verify-code'),
     path('api/create-new-password/', views.CreareNewPasswordView.as_view(), name='verify-code'),
+    path('profile/', views.UserProfileView.as_view(), name='user-profile'),
+    path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
 ]
 
 router = DefaultRouter()

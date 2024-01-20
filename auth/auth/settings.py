@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-pz*^q4&wguz28u276xau^c%y8dwqf4neddh+3vc@^^aii34c8g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['sole-exact-humpback.ngrok-free.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['cheerful-kitten-awfully.ngrok-free.app', 'localhost', '127.0.0.1']
 
 # settings.py
 
