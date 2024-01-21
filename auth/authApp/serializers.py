@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth import authenticate
 
 MIN_LENGTH = 8
 
@@ -46,7 +47,7 @@ class CodeVerificationSerializer(serializers.Serializer):
     email = serializers.CharField()
 
 
-class UserSerializerLogin(serializers.Serializer):
+class UserSerializerSignUp(serializers.Serializer):
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
@@ -88,5 +89,26 @@ class UserSerializerLogin(serializers.Serializer):
         user.set_password(password)
         user.save()
 
-        return user
+        return user    
 
+
+class UserSerializerLogin(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(
+        write_only=True,
+        min_length=MIN_LENGTH,
+        error_messages={
+            "min_length": f"Password must be longer than {MIN_LENGTH} characters."
+        }
+    )
+
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+        user = authenticate(username=email, password=password)
+
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+
+        data['user'] = user 
+        return data

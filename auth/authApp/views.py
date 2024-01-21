@@ -10,8 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import UserProfile
+from django.contrib.auth import authenticate
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
+from .serializers import UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
 
 
 VERIFICATION_CODE = "2207"
@@ -30,7 +31,7 @@ def generate_tokens(user):
 
 class UserSignupView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializerLogin
+    serializer_class = UserSerializerSignUp
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
@@ -49,14 +50,19 @@ class UserSignupView(generics.CreateAPIView):
             "refresh_token": str(refresh),
         }, status=status.HTTP_201_CREATED)
 
+# views.py
 class UserLoginView(APIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
-        
+        serializer = UserSerializerLogin(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+
+        user = authenticate(username=email, password=password)
+
         if user:
             login(request, user)
 
@@ -71,6 +77,8 @@ class UserLoginView(APIView):
             })
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 
 class PasswordResetView(APIView):
     permission_classes = [permissions.AllowAny]
