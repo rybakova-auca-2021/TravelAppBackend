@@ -9,10 +9,11 @@ from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import UserProfile
+from .models import UserProfile, PopularPlace, MustVisitPlace, Tour
 from django.contrib.auth import authenticate
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer
+from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
+from .serializers import PopularPlaceSerializer, EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer, MustVisitPlaceSerializer, TourSerializer
 
 
 VERIFICATION_CODE = "2207"
@@ -209,6 +210,41 @@ class EditProfilePhoto(APIView):
 
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PopularPlacesView(APIView):
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+
+    def get_queryset(self):
+        return PopularPlace.objects.all()
+
+    def get(self, request):
+        popular_places = self.get_queryset()
+        serializer = PopularPlaceSerializer(popular_places, many=True) 
+        return Response(serializer.data)
+
+
+class MustVisitPlacesView(APIView):
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+
+    def get_queryset(self):
+        return MustVisitPlace.objects.all()
+
+    def get(self, request):
+        popular_places = self.get_queryset()
+        serializer = MustVisitPlaceSerializer(popular_places, many=True) 
+        return Response(serializer.data)        
+
+class TourPlacesView(APIView):
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+
+    def get_queryset(self):
+        return Tour.objects.all()
+
+    def get(self, request):
+        popular_places = self.get_queryset()
+        serializer = TourSerializer(popular_places, many=True) 
+        return Response(serializer.data)    
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)

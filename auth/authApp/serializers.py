@@ -2,13 +2,10 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import authenticate
+from .models import UserProfile
+from authApp.models import Place, PopularPlace, MustVisitPlace, Tour
 
 MIN_LENGTH = 8
-
-# serializers.py
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import UserProfile
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -123,3 +120,23 @@ class UserSerializerLogin(serializers.Serializer):
 
         data['user'] = user 
         return data
+
+class PlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ['id', 'name', 'description', 'main_image', 'detail_images']
+
+class PopularPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PopularPlace
+        fields = ['id', 'name', 'description', 'main_image']
+
+class MustVisitPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MustVisitPlace
+        fields = ['id', 'name', 'description', 'main_image']
+
+class TourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tour
+        fields = ['id', 'name', 'description', 'main_image']

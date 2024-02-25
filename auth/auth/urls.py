@@ -37,6 +37,9 @@ urlpatterns = [
     path('profile/', views.UserProfileView.as_view(), name='user-profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
     path('profile_photo/edit/', views.EditProfilePhoto.as_view(), name='edit-profile-photo'),
+    path('places/popular-places/', views.PopularPlacesView.as_view(), name='popular'),
+    path('places/must-visit-places/', views.MustVisitPlacesView.as_view(), name='must-visit'),
+    path('places/packages/', views.TourPlacesView.as_view(), name='package'),
 
     # Swagger URLs
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
