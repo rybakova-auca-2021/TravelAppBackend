@@ -60,7 +60,8 @@ INSTALLED_APPS = [
     'authApp',
     'rest_framework',
     'rest_framework.authtoken',
-     'sendsms'
+     'sendsms',
+     'drf_yasg'
 ]
 
 AUTHENTICATION_BACKENDS = [
