@@ -10,15 +10,19 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import UserProfile, PopularPlace, MustVisitPlace, Tour
+from .models import UserProfile, PopularPlace, MustVisitPlace, Tour, SavedPlace, Place
 from django.contrib.auth import authenticate
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
-from .serializers import PopularPlaceSerializer, EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer, MustVisitPlaceSerializer, TourSerializer
+from .serializers import PopularPlaceSerializer, EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer, MustVisitPlaceSerializer, TourSerializer, SavedPlaceSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 VERIFICATION_CODE = "2207"
 
@@ -68,6 +72,7 @@ class UserLoginView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializerLogin
 
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         serializer = UserSerializerLogin(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -297,3 +302,44 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+class SavePlaceView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'place_id',
+                openapi.IN_QUERY,
+                description="ID of the place to save",
+                type=openapi.TYPE_INTEGER
+            ),
+        ]
+    )
+    def post(self, request):
+        place_id = request.query_params.get('place_id') 
+        if not place_id:
+            return Response({"error": "Place ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        place = get_object_or_404(Place, id=place_id)
+
+        saved_place_data = {
+            'user': request.user.pk,
+            'name': place.name,
+            'description': place.description,
+            'main_image': place.main_image,
+        }
+        serializer = SavedPlaceSerializer(data=saved_place_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SavedPlacesListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        saved_places = SavedPlace.objects.filter(user=request.user)
+        serializer = SavedPlaceSerializer(saved_places, many=True)
+        return Response(serializer.data)

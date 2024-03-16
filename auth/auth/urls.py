@@ -44,6 +44,8 @@ urlpatterns = [
     path('places/packages/<int:place_id>/', views.PackagesDetailsById.as_view(), name='place-details-by-id'),
     path('places/must-visit-places/', views.MustVisitPlacesView.as_view(), name='must-visit'),
     path('places/packages/', views.TourPlacesView.as_view(), name='package'),
+    path('save-place/', views.SavePlaceView.as_view(), name='save_place'),
+    path('saved-places/', views.SavedPlacesListView.as_view(), name='saved_places'),
 
     # Swagger URLs
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

@@ -15,13 +15,20 @@ class UserProfile(models.Model):
         return self.user.username
 
 class Place(models.Model):
+    CATEGORY_CHOICES = [
+        ('category1', 'Popular places'),
+        ('category2', 'Must Visit Places'),
+        ('category3', 'Packages'),
+    ]
+
     name = models.CharField(max_length=100)
     description = models.TextField()
-    main_image = models.ImageField(upload_to='main_images/')
-    detail_images = models.ManyToManyField('DetailImage', blank=True)
+    main_image = models.CharField(null=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='')  
 
     def __str__(self):
         return self.name
+
 
 class DetailImage(models.Model):
     image = models.ImageField(upload_to='detail_images/')
@@ -31,18 +38,18 @@ class DetailImage(models.Model):
 
 class PopularPlace(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=455)
-    main_image = models.CharField()
+    name = models.CharField(max_length=100, null=True)
+    description = models.CharField(max_length=455, null=True)
+    main_image = models.CharField(null=True)
 
     def __str__(self):
         return self.name
 
 class MustVisitPlace(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=455)
-    main_image = models.CharField()
+    name = models.CharField(max_length=100, null=True)
+    description = models.CharField(max_length=455, null=True)
+    main_image = models.CharField(null=True)
 
     def __str__(self):
         return self.name
@@ -50,8 +57,19 @@ class MustVisitPlace(models.Model):
 class Tour(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    description = models.TextField()
-    main_image = models.CharField()
+    description = models.TextField(null=True)
+    main_image = models.CharField(default='')
 
     def __str__(self):
         return self.name
+
+class SavedPlace(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)  
+    description = models.TextField()  
+    main_image = models.CharField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.user.username}'s saved place"

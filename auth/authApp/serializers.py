@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import authenticate
 from .models import UserProfile
-from authApp.models import Place, PopularPlace, MustVisitPlace, Tour
+from authApp.models import Place, PopularPlace, MustVisitPlace, Tour, SavedPlace
 
 MIN_LENGTH = 8
 
@@ -140,3 +140,8 @@ class TourSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tour
         fields = ['id', 'name', 'description', 'main_image']
+
+class SavedPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedPlace
+        fields = '__all__'
