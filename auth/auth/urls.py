@@ -38,6 +38,9 @@ urlpatterns = [
     path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
     path('profile_photo/edit/', views.EditProfilePhoto.as_view(), name='edit-profile-photo'),
     path('places/popular-places/', views.PopularPlacesView.as_view(), name='popular'),
+    path('places/popular-places/<int:place_id>/', views.PopularPlaceDetailsById.as_view(), name='place-details-by-id'),
+    path('places/must-visit-places/<int:place_id>/', views.MustVisitPlaceDetailsById.as_view(), name='place-details-by-id'),
+    path('places/packages/<int:place_id>/', views.PackagesDetailsById.as_view(), name='place-details-by-id'),
     path('places/must-visit-places/', views.MustVisitPlacesView.as_view(), name='must-visit'),
     path('places/packages/', views.TourPlacesView.as_view(), name='package'),
 

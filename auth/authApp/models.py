@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
+from cloudinary_storage.storage import MediaCloudinaryStorage
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -31,7 +33,7 @@ class PopularPlace(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=455)
-    main_image = models.ImageField(upload_to='main_images/')
+    main_image = models.CharField()
 
     def __str__(self):
         return self.name
@@ -40,7 +42,7 @@ class MustVisitPlace(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=455)
-    main_image = models.ImageField(upload_to='main_images/')
+    main_image = models.CharField()
 
     def __str__(self):
         return self.name
@@ -49,7 +51,7 @@ class Tour(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     description = models.TextField()
-    main_image = models.ImageField(upload_to='main_images/')
+    main_image = models.CharField()
 
     def __str__(self):
         return self.name

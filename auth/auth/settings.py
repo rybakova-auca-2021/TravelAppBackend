@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import cloudinary
+          
+CLOUDINARY_STORAGE = {
+  'CLOUD_NAME': "ddkw90lqd", 
+  'API_KEY': "389117242469547", 
+  'API_SECRET': "dX7ei_l3-2OOzHIbQyrKlaoZips" 
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,8 +67,8 @@ INSTALLED_APPS = [
     'authApp',
     'rest_framework',
     'rest_framework.authtoken',
-     'sendsms',
-     'drf_yasg'
+    'sendsms',
+    'drf_yasg',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -125,7 +132,6 @@ DATABASES = {
         'PORT': '5432',        
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

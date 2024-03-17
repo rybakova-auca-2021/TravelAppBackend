@@ -1,4 +1,6 @@
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.generics import RetrieveAPIView
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
@@ -244,7 +246,32 @@ class TourPlacesView(APIView):
     def get(self, request):
         popular_places = self.get_queryset()
         serializer = TourSerializer(popular_places, many=True) 
-        return Response(serializer.data)    
+        return Response(serializer.data)
+
+class PopularPlaceDetailsById(RetrieveAPIView):
+    queryset = PopularPlace.objects.all()
+    serializer_class = PopularPlaceSerializer 
+
+    def get_object(self):
+        place_id = self.kwargs['place_id']
+        return get_object_or_404(self.queryset, id=place_id)
+
+class MustVisitPlaceDetailsById(RetrieveAPIView):
+    queryset = MustVisitPlace.objects.all()
+    serializer_class = MustVisitPlaceSerializer 
+
+    def get_object(self):
+        place_id = self.kwargs['place_id']
+        return get_object_or_404(self.queryset, id=place_id)
+
+
+class PackagesDetailsById(RetrieveAPIView):
+    queryset = Tour.objects.all()
+    serializer_class = TourSerializer 
+
+    def get_object(self):
+        place_id = self.kwargs['place_id']
+        return get_object_or_404(self.queryset, id=place_id)
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
