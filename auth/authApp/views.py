@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.contrib.auth import authenticate, login
+from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .serializers import UserSerializer
@@ -16,9 +17,17 @@ from django.contrib.auth import authenticate
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
 from .serializers import PopularPlaceSerializer, EditProfileSerializer, EditUserProfileSerializer, UserSerializer, UserSerializerSignUp, UserSerializerLogin, NewPasswordSerializer, PasswordResetSerializer, CodeVerificationSerializer, UserProfileSerializer, MustVisitPlaceSerializer, TourSerializer
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 VERIFICATION_CODE = "2207"
+
+place_id_param = openapi.Parameter(
+    'place_id',
+    openapi.IN_QUERY,
+    description="ID of the place to save",
+    type=openapi.TYPE_INTEGER
+)
 
 def get_user_by_username(username):
     return User.objects.filter(username=username).first()
@@ -54,8 +63,10 @@ class UserSignupView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 # views.py
-class UserLoginView(APIView):
+class UserLoginView(generics.CreateAPIView):
+    queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
+    serializer_class = UserSerializerLogin
 
     def post(self, request, *args, **kwargs):
         serializer = UserSerializerLogin(data=request.data)
@@ -83,8 +94,9 @@ class UserLoginView(APIView):
 
 
 
-class PasswordResetView(APIView):
+class PasswordResetView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetSerializer
 
     def send_verification_code(self, email, verification_code):
         try:
@@ -113,8 +125,16 @@ class PasswordResetView(APIView):
         else:
             return Response({"error": "User not found for the provided email"}, status=status.HTTP_404_NOT_FOUND)
 
-class CodeVerificationView(APIView):
+class UserLogoutView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        logout(request)
+        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+
+class CodeVerificationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
+    serializer_class = CodeVerificationSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = CodeVerificationSerializer(data=request.data)

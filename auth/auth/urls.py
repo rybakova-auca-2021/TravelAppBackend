@@ -34,6 +34,7 @@ urlpatterns = [
     path('auth/password-reset/', views.PasswordResetView.as_view(), name='password-reset'),
     path('auth/verify-code/', views.CodeVerificationView.as_view(), name='verify-code'),
     path('auth/create-new-password/', views.CreareNewPasswordView.as_view(), name='create-new-password'),
+    path('auth/logout/', views.UserLogoutView.as_view(), name='user_logout'),
     path('profile/', views.UserProfileView.as_view(), name='user-profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
     path('profile_photo/edit/', views.EditProfilePhoto.as_view(), name='edit-profile-photo'),
